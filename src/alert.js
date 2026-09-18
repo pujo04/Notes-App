@@ -1,12 +1,10 @@
 import Swal from "sweetalert2";
 
 function getThemeColors() {
-  const isDark =
-    document.documentElement.getAttribute("data-theme") === "dark";
   return {
-    bg: isDark ? "#1E293B" : "#ffffff",
-    text: isDark ? "#F1F5F9" : "#1E293B",
-    subtext: isDark ? "#94A3B8" : "#64748B",
+    bg: "#FFFDF7",
+    text: "#451A03",
+    subtext: "#78350F",
   };
 }
 

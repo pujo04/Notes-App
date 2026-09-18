@@ -37,7 +37,7 @@ export const sampleNotes = [
   {
     id: "notes-sample-6",
     title: "Sprint Planning & Roadmap Q4",
-    body: "Daftar prioritas tim: migrasi komponen ke dark mode modern, integrasi indikator loading interaktif menggunakan SweetAlert2, dan audit performa Core Web Vitals (FCP, LCP, CLS).",
+    body: "Daftar prioritas tim: penyempurnaan tampilan hangat CozyNotes, integrasi indikator loading interaktif menggunakan SweetAlert2, dan audit performa Core Web Vitals (FCP, LCP, CLS).",
     createdAt: "2026-09-17T16:00:00.000Z",
     archived: true,
   },

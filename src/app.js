@@ -82,29 +82,11 @@ function createEmptyState(title, subtitle, icon = "🧺✨") {
 }
 
 // ============================
-// Theme Management
+// Theme Management (Light Mode Only)
 // ============================
 function initTheme() {
-  const savedTheme = localStorage.getItem("notesapp-theme") || "light";
-  document.documentElement.setAttribute("data-theme", savedTheme);
-  updateThemeIcon(savedTheme);
-}
-
-function toggleTheme() {
-  const current = document.documentElement.getAttribute("data-theme");
-  const next = current === "dark" ? "light" : "dark";
-  document.documentElement.setAttribute("data-theme", next);
-  localStorage.setItem("notesapp-theme", next);
-  updateThemeIcon(next);
-}
-
-function updateThemeIcon(theme) {
-  const btn = document.querySelector(".theme-toggle");
-  if (!btn) return;
-  btn.innerHTML =
-    theme === "dark"
-      ? `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>`
-      : `<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>`;
+  document.documentElement.setAttribute("data-theme", "light");
+  localStorage.removeItem("notesapp-theme");
 }
 
 // ============================
@@ -317,11 +299,6 @@ class AppBar extends HTMLElement {
             <line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
         </div>
-        <div class="navbar-actions">
-          <button class="theme-toggle" id="themeToggle" aria-label="Toggle tema gelap/terang" title="Ubah Suasana Langit">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></svg>
-          </button>
-        </div>
       </nav>
     `;
 
@@ -334,8 +311,6 @@ class AppBar extends HTMLElement {
         displayNotes();
       }, 180);
     });
-
-    this.querySelector("#themeToggle").addEventListener("click", toggleTheme);
   }
 }
 
@@ -574,16 +549,22 @@ class NoteItem extends HTMLElement {
     const colorClass = getCardColorClass(this._cardIndex || 0);
 
     this.innerHTML = `
-      <div class="note-card ${colorClass} ${meta.pinned ? "is-pinned" : ""}">
+      <div class="note-card ${colorClass} ${meta.pinned ? "is-pinned" : ""}" role="button" tabindex="0" title="Klik untuk membaca catatan lengkap & edit">
         <div class="note-card-top-row">
           <span class="note-card-sticker">${meta.sticker || "🌻"}</span>
-          ${meta.pinned ? `<span class="pinned-badge">📌 Disematkan</span>` : ""}
+          <div class="note-card-top-badges">
+            ${meta.pinned ? `<span class="pinned-badge">📌 Disematkan</span>` : ""}
+            ${archived ? `<span class="archived-badge">🗄️ Diarsipkan</span>` : ""}
+          </div>
         </div>
         <div class="note-card-header">
           <h3 class="note-card-title">${title}</h3>
         </div>
         <div class="note-card-body">
           <p class="note-card-text">${body}</p>
+        </div>
+        <div class="note-card-hint">
+          <span>🔍</span> Klik untuk baca lengkap & edit
         </div>
         <div class="note-card-footer">
           <span class="note-date">
@@ -593,7 +574,7 @@ class NoteItem extends HTMLElement {
             <button class="action-btn pin-btn ${meta.pinned ? "active" : ""}" title="${meta.pinned ? "Lepas Sematan" : "Sematkan Catatan"}">
               📌
             </button>
-            <button class="action-btn edit-btn" title="Edit Catatan">
+            <button class="action-btn edit-btn" title="Buka Detail & Edit Catatan">
               ✏️
             </button>
             <button class="action-btn archive-btn" title="${archived ? "Pulihkan" : "Arsipkan"}">
@@ -607,10 +588,36 @@ class NoteItem extends HTMLElement {
       </div>
     `;
 
-    this.querySelector(".pin-btn").addEventListener("click", () => this.togglePin());
-    this.querySelector(".edit-btn").addEventListener("click", () => this.openEdit());
-    this.querySelector(".archive-btn").addEventListener("click", () => this.toggleArchive());
-    this.querySelector(".delete-btn").addEventListener("click", () => this.deleteSelf());
+    const card = this.querySelector(".note-card");
+    card.addEventListener("click", (e) => {
+      // Ignore if user clicked on action buttons
+      if (e.target.closest(".action-btn")) return;
+      this.openEdit();
+    });
+
+    card.addEventListener("keydown", (e) => {
+      if ((e.key === "Enter" || e.key === " ") && !e.target.closest(".action-btn")) {
+        e.preventDefault();
+        this.openEdit();
+      }
+    });
+
+    this.querySelector(".pin-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.togglePin();
+    });
+    this.querySelector(".edit-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.openEdit();
+    });
+    this.querySelector(".archive-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.toggleArchive();
+    });
+    this.querySelector(".delete-btn").addEventListener("click", (e) => {
+      e.stopPropagation();
+      this.deleteSelf();
+    });
   }
 
   togglePin() {
@@ -916,11 +923,12 @@ class CozySoundboard extends HTMLElement {
 }
 
 // ============================
-// Web Component: Edit Modal
+// Web Component: Edit Modal & Full Note Viewer
 // ============================
 class EditModal extends HTMLElement {
   connectedCallback() {
     this._currentNote = null;
+    this._selectedSticker = "🌻";
     this.render();
     this.setupEventListeners();
   }
@@ -931,22 +939,50 @@ class EditModal extends HTMLElement {
         <div class="modal-dialog" id="editDialog" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
           <div class="modal-header">
             <div class="modal-title-group">
-              <span>✏️</span>
-              <h3 class="modal-title" id="modalTitle">Edit Catatan Hangat</h3>
+              <span class="modal-sticker-badge" id="modalSticker">🌻</span>
+              <div>
+                <h3 class="modal-title" id="modalTitle">Catatan Lengkap & Edit</h3>
+                <div class="modal-meta-info">
+                  <span id="modalDate">📅 18 Sep 2026</span>
+                  <span id="modalBadges"></span>
+                </div>
+              </div>
             </div>
             <button type="button" class="modal-close-btn" id="closeModalBtn" aria-label="Tutup modal">✕</button>
           </div>
           <form id="editForm" class="modal-form">
             <div class="form-field">
               <label for="editTitle" class="form-label">Judul Catatan</label>
-              <input type="text" id="editTitle" name="title" placeholder="Judul catatan..." required autocomplete="off" />
+              <input type="text" id="editTitle" name="title" class="modal-input" placeholder="Judul catatan..." required autocomplete="off" />
             </div>
             <div class="form-field">
-              <label for="editBody" class="form-label">Isi Catatan</label>
-              <textarea id="editBody" name="body" rows="6" placeholder="Isi catatan..." required></textarea>
+              <div class="label-row">
+                <label for="editBody" class="form-label">Isi Catatan Lengkap</label>
+                <span class="label-hint">Dapat dibaca utuh & diedit langsung</span>
+              </div>
+              <textarea id="editBody" name="body" class="modal-textarea" rows="8" placeholder="Tulis atau baca catatan lengkap..." required></textarea>
+            </div>
+            <div class="edit-modal-options">
+              <div class="edit-sticker-picker">
+                <span class="form-label" style="margin-bottom: 0;">Stiker:</span>
+                <div class="sticker-buttons" id="editStickers">
+                  <button type="button" class="edit-sticker-btn" data-sticker="🌻">🌻</button>
+                  <button type="button" class="edit-sticker-btn" data-sticker="☕">☕</button>
+                  <button type="button" class="edit-sticker-btn" data-sticker="💡">💡</button>
+                  <button type="button" class="edit-sticker-btn" data-sticker="⭐">⭐</button>
+                  <button type="button" class="edit-sticker-btn" data-sticker="🎨">🎨</button>
+                  <button type="button" class="edit-sticker-btn" data-sticker="📌">📌</button>
+                  <button type="button" class="edit-sticker-btn" data-sticker="🦋">🦋</button>
+                  <button type="button" class="edit-sticker-btn" data-sticker="🎀">🎀</button>
+                </div>
+              </div>
+              <label class="pin-checkbox-label">
+                <input type="checkbox" id="editPinToggle" />
+                <span>📌 Sematkan Catatan</span>
+              </label>
             </div>
             <div class="modal-actions">
-              <button type="button" class="btn btn-ghost" id="cancelEditBtn">Batal</button>
+              <button type="button" class="btn btn-ghost" id="cancelEditBtn">Tutup</button>
               <button type="submit" class="btn btn-primary" id="saveEditBtn">
                 Simpan Perubahan ✨
               </button>
@@ -976,20 +1012,58 @@ class EditModal extends HTMLElement {
       }
     });
 
+    // Sticker selection in edit modal
+    const stickerBtns = this.querySelectorAll(".edit-sticker-btn");
+    stickerBtns.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        stickerBtns.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        this._selectedSticker = btn.getAttribute("data-sticker");
+        const modalSticker = this.querySelector("#modalSticker");
+        if (modalSticker) modalSticker.textContent = this._selectedSticker;
+      });
+    });
+
     form.addEventListener("submit", this.handleSubmit.bind(this));
   }
 
   open(note) {
     this._currentNote = note;
+    const meta = getNoteMeta(note.id);
     const backdrop = this.querySelector("#editBackdrop");
     const titleInput = this.querySelector("#editTitle");
     const bodyInput = this.querySelector("#editBody");
+    const modalSticker = this.querySelector("#modalSticker");
+    const modalDate = this.querySelector("#modalDate");
+    const modalBadges = this.querySelector("#modalBadges");
+    const pinToggle = this.querySelector("#editPinToggle");
 
     titleInput.value = note.title;
     bodyInput.value = note.body;
+    this._selectedSticker = meta.sticker || "🌻";
+
+    if (modalSticker) modalSticker.textContent = this._selectedSticker;
+    if (modalDate) modalDate.innerHTML = `<span>📅</span> ${formatDate(note.createdAt)}`;
+    if (modalBadges) {
+      modalBadges.innerHTML = `
+        ${meta.pinned ? `<span class="pinned-badge">📌 Disematkan</span>` : ""}
+        ${note.archived ? `<span class="archived-badge">🗄️ Diarsipkan</span>` : ""}
+      `;
+    }
+    if (pinToggle) pinToggle.checked = !!meta.pinned;
+
+    this.querySelectorAll(".edit-sticker-btn").forEach((btn) => {
+      if (btn.getAttribute("data-sticker") === this._selectedSticker) {
+        btn.classList.add("active");
+      } else {
+        btn.classList.remove("active");
+      }
+    });
 
     backdrop.classList.add("open");
-    setTimeout(() => titleInput.focus(), 50);
+    setTimeout(() => {
+      bodyInput.scrollTop = 0;
+    }, 50);
   }
 
   close() {
@@ -1004,6 +1078,7 @@ class EditModal extends HTMLElement {
 
     const title = this.querySelector("#editTitle").value.trim();
     const body = this.querySelector("#editBody").value.trim();
+    const isPinned = this.querySelector("#editPinToggle") ? this.querySelector("#editPinToggle").checked : false;
 
     if (!title || !body) return;
 
@@ -1011,13 +1086,29 @@ class EditModal extends HTMLElement {
       this.close();
       showAlert.loading();
 
-      await editNote(
-        this._currentNote.id,
+      const oldId = this._currentNote.id;
+      const oldArchived = this._currentNote.archived;
+      const selectedSticker = this._selectedSticker || "🌻";
+
+      let category = "all";
+      if (selectedSticker === "💡" || selectedSticker === "🎨") category = "ideas";
+      if (selectedSticker === "⭐" || selectedSticker === "📌") category = "plans";
+
+      const updated = await editNote(
+        oldId,
         title,
         body,
-        this._currentNote.archived,
+        oldArchived
       );
 
+      const targetId = (updated && updated.id) ? updated.id : oldId;
+      saveNoteMeta(targetId, {
+        sticker: selectedSticker,
+        pinned: isPinned,
+        category
+      });
+
+      spawnCozyParticles(document.body);
       await renderNotes();
       showAlert.success("Catatan berhasil diperbarui! ✨");
     } catch (error) {

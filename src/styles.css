@@ -89,59 +89,6 @@
   --transition-smooth: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ── Dark Mode Tokens (Cozy Starry Night) ── */
-
-[data-theme="dark"] {
-  --bg-primary: #1C1917;
-  --bg-page-gradient: linear-gradient(180deg, #0F172A 0%, #1C1917 180px, #1C1917 100%);
-  --bg-card: #292524;
-  --bg-input: #44403C;
-  --bg-hover: #44403C;
-  --bg-navbar: rgba(28, 25, 23, 0.92);
-
-  --gingham-color-1: rgba(245, 158, 11, 0.06);
-  --bg-gingham: repeating-linear-gradient(
-      0deg,
-      transparent,
-      transparent 12px,
-      var(--gingham-color-1) 12px,
-      var(--gingham-color-1) 24px
-    ),
-    repeating-linear-gradient(
-      90deg,
-      transparent,
-      transparent 12px,
-      var(--gingham-color-1) 12px,
-      var(--gingham-color-1) 24px
-    ),
-    #292524;
-
-  --text-primary: #FEF3C7;
-  --text-secondary: #E7E5E4;
-  --text-tertiary: #A8A29E;
-  --text-light: #FDE68A;
-
-  --border-color: #44403C;
-  --border-card: #57534E;
-  --border-strong: #F59E0B;
-
-  --card-butter: #292524;
-  --card-butter-border: #78350F;
-  --card-peach: #292524;
-  --card-peach-border: #9A3412;
-  --card-mint: #292524;
-  --card-mint-border: #065F46;
-  --card-pink: #292524;
-  --card-pink-border: #9D174D;
-  --card-sky: #292524;
-  --card-sky-border: #075985;
-
-  --shadow-xs: 0 2px 4px rgba(0, 0, 0, 0.3);
-  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 4px 16px -2px rgba(0, 0, 0, 0.45);
-  --shadow-hover: 0 12px 28px -4px rgba(0, 0, 0, 0.55);
-}
-
 /* ── 2. Base Reset & Typography ── */
 
 *,
@@ -438,35 +385,6 @@ app-bar {
 .search-input:focus {
   border-color: var(--accent);
   box-shadow: 0 0 0 3px var(--accent-glow);
-}
-
-.navbar-actions {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
-.theme-toggle {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 2px solid var(--border-color);
-  border-radius: var(--radius-pill);
-  background: var(--bg-card);
-  color: var(--text-secondary);
-  cursor: pointer;
-  box-shadow: var(--shadow-xs);
-  transition: all var(--transition);
-}
-
-.theme-toggle:hover {
-  background: var(--bg-hover);
-  color: var(--accent);
-  border-color: var(--accent);
-  transform: rotate(18deg) scale(1.08);
 }
 
 /* ── 6. Daily Mood Tracker & Warm Greeting ── */
@@ -884,12 +802,19 @@ note-item {
   transition: all var(--transition);
   position: relative;
   overflow: visible;
+  cursor: pointer;
+  outline: none;
 }
 
 .note-card:hover {
   transform: translateY(-5px) rotate(0.4deg);
   box-shadow: var(--shadow-hover);
   border-color: var(--accent);
+}
+
+.note-card:focus-visible {
+  outline: 3px solid var(--accent);
+  outline-offset: 3px;
 }
 
 /* Pastel color variants assigned systematically */
@@ -934,6 +859,13 @@ note-item {
   filter: drop-shadow(0 2px 3px rgba(0, 0, 0, 0.12));
 }
 
+.note-card-top-badges {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
 .pinned-badge {
   display: inline-flex;
   align-items: center;
@@ -945,6 +877,19 @@ note-item {
   background: #FEF08A;
   color: #78350F;
   border: 1px solid #FCD34D;
+}
+
+.archived-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: var(--radius-pill);
+  background: #E2E8F0;
+  color: #475569;
+  border: 1px solid #CBD5E1;
 }
 
 .note-card-title {
@@ -962,7 +907,7 @@ note-item {
 
 .note-card-body {
   flex: 1;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
 }
 
 .note-card-text {
@@ -975,6 +920,24 @@ note-item {
   overflow: hidden;
   white-space: pre-wrap;
   word-break: break-word;
+}
+
+.note-card-hint {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 12px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--accent-hover);
+  opacity: 0.85;
+  transition: all var(--transition);
+}
+
+.note-card:hover .note-card-hint {
+  color: var(--accent);
+  opacity: 1;
+  transform: translateX(3px);
 }
 
 .note-card-footer {
@@ -1408,7 +1371,9 @@ cozy-soundboard {
   border: 2.5px solid var(--border-card);
   border-radius: var(--radius-lg);
   width: 100%;
-  max-width: 520px;
+  max-width: 600px;
+  max-height: 90vh;
+  overflow-y: auto;
   box-shadow: var(--shadow-hover);
   padding: 28px;
   transform: scale(0.92);
@@ -1431,7 +1396,13 @@ cozy-soundboard {
 .modal-title-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+}
+
+.modal-sticker-badge {
+  font-size: 2rem;
+  line-height: 1;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.12));
 }
 
 .modal-title {
@@ -1439,6 +1410,18 @@ cozy-soundboard {
   font-size: 1.25rem;
   font-weight: 700;
   color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.modal-meta-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  flex-wrap: wrap;
 }
 
 .modal-close-btn {
@@ -1446,13 +1429,16 @@ cozy-soundboard {
   border: 1.5px solid var(--border-color);
   color: var(--text-secondary);
   cursor: pointer;
-  width: 32px;
-  height: 32px;
+  width: 34px;
+  height: 34px;
   border-radius: var(--radius-pill);
   display: flex;
   align-items: center;
   justify-content: center;
   transition: all var(--transition);
+  font-size: 0.95rem;
+  font-weight: 700;
+  flex-shrink: 0;
 }
 
 .modal-close-btn:hover {
@@ -1473,6 +1459,126 @@ cozy-soundboard {
   font-weight: 700;
   color: var(--text-secondary);
   margin-bottom: 6px;
+}
+
+.label-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 6px;
+}
+
+.label-hint {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--accent-hover);
+}
+
+.modal-input {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  outline: none;
+  transition: all var(--transition);
+}
+
+.modal-input:focus {
+  border-color: var(--accent);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.modal-textarea {
+  width: 100%;
+  min-height: 220px;
+  max-height: 420px;
+  padding: 14px 16px;
+  border: 2px solid var(--border-color);
+  border-radius: var(--radius-md);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  line-height: 1.65;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  outline: none;
+  transition: all var(--transition);
+  resize: vertical;
+  white-space: pre-wrap;
+}
+
+.modal-textarea:focus {
+  border-color: var(--accent);
+  background: #FFFFFF;
+  box-shadow: 0 0 0 3px var(--accent-glow);
+}
+
+.edit-modal-options {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  padding: 12px 14px;
+  background: var(--bg-primary);
+  border: 1.5px dashed var(--border-color);
+  border-radius: var(--radius-md);
+}
+
+.edit-sticker-picker {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.edit-sticker-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-pill);
+  background: #FFFFFF;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all var(--transition);
+}
+
+.edit-sticker-btn:hover {
+  transform: scale(1.18);
+  border-color: var(--accent);
+}
+
+.edit-sticker-btn.active {
+  border-color: #F59E0B;
+  background: #FEF08A;
+  transform: scale(1.15);
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+}
+
+.pin-checkbox-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.pin-checkbox-label input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 16px;
+  height: 16px;
+  cursor: pointer;
 }
 
 .modal-actions {
