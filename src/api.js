@@ -7,13 +7,18 @@ function getAccessToken() {
 }
 
 async function fetchWithToken(url, options = {}) {
+  const token = getAccessToken();
+  const headers = {
+    "Content-Type": "application/json",
+    ...options.headers,
+  };
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
+  }
+
   return fetch(url, {
     ...options,
-    headers: {
-      ...options.headers,
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${getAccessToken()}`,
-    },
+    headers,
   });
 }
 
@@ -125,3 +130,18 @@ export async function deleteNote(id) {
     throw error;
   }
 }
+
+export async function editNote(id, title, body, wasArchived = false) {
+  try {
+    await deleteNote(id);
+    const newNote = await addNote(title, body);
+    if (wasArchived && newNote && newNote.id) {
+      await archiveNote(newNote.id);
+    }
+    return newNote;
+  } catch (error) {
+    console.error("Error editing note:", error);
+    throw error;
+  }
+}
+
