@@ -11,7 +11,6 @@ import {
 import { showAlert } from "./alert.js";
 import { spawnCozyParticles } from "./party-particles.js";
 import { toggleAmbience, stopAmbience, isAmbienceRunning, getActiveAmbienceType } from "./soundboard.js";
-import { sampleNotes } from "./sample-data.js";
 
 // ============================
 // Module State
@@ -39,20 +38,6 @@ function saveNoteMeta(id, meta) {
 function getNoteMeta(id) {
   const allMeta = getNotesMeta();
   return allMeta[id] || { sticker: "🌻", pinned: false, category: "all" };
-}
-
-function ensureSampleMeta() {
-  const defaultStickers = ["🌻", "💡", "⭐", "☕", "🎨"];
-  activeNotesData.forEach((note, idx) => {
-    const existing = getNoteMeta(note.id);
-    if (!existing.sticker || existing.sticker === "🌻") {
-      saveNoteMeta(note.id, {
-        sticker: defaultStickers[idx % defaultStickers.length],
-        pinned: idx === 0, // Pin first note with cute washi tape!
-        category: idx % 2 === 0 ? "ideas" : "plans",
-      });
-    }
-  });
 }
 
 // Helpers
@@ -87,54 +72,28 @@ function createEmptyState(title, subtitle, icon = "🧺✨") {
 function initTheme() {
   document.documentElement.setAttribute("data-theme", "light");
   localStorage.removeItem("notesapp-theme");
+  localStorage.removeItem("cozy_initial_seeded");
 }
 
 // ============================
-// Render & Display Notes
+// Render & Display Notes (Pure REST API)
 // ============================
 async function renderNotes() {
   try {
     showAlert.loading();
-    let [activeNotes, archivedNotes] = await Promise.all([
+    const [activeNotes, archivedNotes] = await Promise.all([
       getNotes(),
       getArchivedNotes(),
     ]);
 
-    // If notes are empty from API, populate with sample notes
-    if (activeNotes.length === 0 && archivedNotes.length === 0) {
-      if (!localStorage.getItem("cozy_initial_seeded")) {
-        localStorage.setItem("cozy_initial_seeded", "true");
-        for (const sample of sampleNotes) {
-          try {
-            const created = await addNote(sample.title, sample.body);
-            if (sample.archived && created && created.id) {
-              await archiveNote(created.id);
-            }
-          } catch (e) {}
-        }
-        const [reActive, reArchived] = await Promise.all([
-          getNotes(),
-          getArchivedNotes(),
-        ]);
-        activeNotes = reActive;
-        archivedNotes = reArchived;
-      }
-      if (activeNotes.length === 0 && archivedNotes.length === 0) {
-        activeNotes = sampleNotes.filter((n) => !n.archived);
-        archivedNotes = sampleNotes.filter((n) => n.archived);
-      }
-    }
+    activeNotesData = Array.isArray(activeNotes) ? activeNotes : [];
+    archivedNotesData = Array.isArray(archivedNotes) ? archivedNotes : [];
 
-    activeNotesData = activeNotes;
-    archivedNotesData = archivedNotes;
-
-    ensureSampleMeta();
     displayNotes();
   } catch (error) {
     console.error("Error rendering notes:", error);
-    activeNotesData = sampleNotes.filter((n) => !n.archived);
-    archivedNotesData = sampleNotes.filter((n) => n.archived);
-    ensureSampleMeta();
+    activeNotesData = [];
+    archivedNotesData = [];
     displayNotes();
   } finally {
     showAlert.close();
@@ -749,17 +708,7 @@ class PicnicChecklist extends HTMLElement {
   loadItems() {
     try {
       const saved = localStorage.getItem("cozy_checklist_items");
-      if (saved) {
-        this._items = JSON.parse(saved);
-      } else {
-        this._items = [
-          { id: 1, text: "Minum segelas air hangat 💧", done: true },
-          { id: 2, text: "Tulis 3 hal yang disyukuri hari ini ✨", done: false },
-          { id: 3, text: "Jalan santai hirup udara segar 🍃", done: false },
-          { id: 4, text: "Baca buku favorit 15 menit 📖", done: false },
-        ];
-        this.saveItems();
-      }
+      this._items = saved ? JSON.parse(saved) : [];
     } catch (e) {
       this._items = [];
     }
@@ -781,17 +730,21 @@ class PicnicChecklist extends HTMLElement {
           <span class="checklist-count">${doneCount}/${this._items.length} Selesai</span>
         </div>
         <ul class="checklist-items">
-          ${this._items
-            .map(
-              (item) => `
-            <li class="checklist-item ${item.done ? "done" : ""}" data-id="${item.id}">
-              <input type="checkbox" class="checklist-checkbox" ${item.done ? "checked" : ""} />
-              <span class="checklist-label">${item.text}</span>
-              <button class="checklist-del-btn" title="Hapus">×</button>
-            </li>
-          `,
-            )
-            .join("")}
+          ${
+            this._items.length === 0
+              ? `<li class="checklist-empty">Belum ada rencana. Yuk tulis rencanamu di bawah! ✨</li>`
+              : this._items
+                  .map(
+                    (item) => `
+                <li class="checklist-item ${item.done ? "done" : ""}" data-id="${item.id}">
+                  <input type="checkbox" class="checklist-checkbox" ${item.done ? "checked" : ""} />
+                  <span class="checklist-label">${item.text}</span>
+                  <button class="checklist-del-btn" title="Hapus">×</button>
+                </li>
+              `,
+                  )
+                  .join("")
+          }
         </ul>
         <form class="checklist-add-form" id="checklistForm">
           <input type="text" class="checklist-add-input" placeholder="Tambah rencana baru..." required />

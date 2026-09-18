@@ -1137,6 +1137,19 @@ picnic-checklist {
   transform: scale(1.2);
 }
 
+.checklist-empty {
+  padding: 14px 10px;
+  text-align: center;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  list-style: none;
+  font-style: italic;
+  background: var(--bg-primary);
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+}
+
 .checklist-add-form {
   display: flex;
   gap: 8px;
