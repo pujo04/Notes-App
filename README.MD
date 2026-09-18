@@ -1,6 +1,6 @@
 # 📝 **Notes App**  
 
-Selamat datang di **Notes App Starter Project**, aplikasi pencatatan sederhana yang dirancang untuk memenuhi tugas akhir kelas **Belajar Membuat Front-End Web untuk Pemula**. Dalam proyek ini, Anda akan mengasah keterampilan dengan membangun aplikasi lengkap dari awal hingga siap digunakan, menggunakan konsep modern dalam pengembangan web.  
+Notes App is a comprehensive web-based note-taking application designed to provide users with a seamless and intuitive experience for creating, managing, and organizing personal notes. Leveraging modern web development technologies, the application utilizes Webpack as a module bundler, implements RESTful API integration for dynamic data management, and employs web components to create a modular and interactive user interface. The app features real-time form validation, a responsive grid layout using CSS Grid, and asynchronous data fetching with the Fetch API, ensuring smooth performance across various devices. Users can create, view, archive, and delete notes with intuitive loading indicators and error handling, while optional enhancements include smooth animations and a clean, aesthetically pleasing design. The project emphasizes code quality through the use of code formatters like Prettier and focuses on delivering a user-friendly, accessible, and performant note-taking solution that meets both mandatory and optional development criteria.  
 
 ---
 
